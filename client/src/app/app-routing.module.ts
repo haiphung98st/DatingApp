@@ -1,11 +1,17 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { NotFoundComponent } from './errors/not-found/not-found.component';
+import { ServerErrorComponent } from './errors/server-error/server-error.component';
+import { TestErrorsComponent } from './errors/test-errors/test-errors.component';
 import { HomeComponent } from './home/home.component';
 import { ListsComponent } from './lists/lists.component';
+import { MemberCardComponent } from './members/member-card/member-card.component';
 import { MemberDetailComponent } from './members/member-detail/member-detail.component';
+import { MemberEditComponent } from './members/member-edit/member-edit.component';
 import { MemberListComponent } from './members/member-list/member-list.component';
 import { MessagesComponent } from './messages/messages.component';
 import { AuthGuard } from './_guards/auth.guard';
+import { UnsaveChangeGuard } from './_guards/unsave-change.guard';
 
 const routes: Routes = [
   {path:"", component:HomeComponent},
@@ -14,13 +20,21 @@ const routes: Routes = [
     runGuardsAndResolvers:'always',
     canActivate:[AuthGuard],
     children:[
-      {path:"members", component:MemberListComponent, canActivate:[AuthGuard]},
-      {path:"members/:id", component:MemberDetailComponent, canActivate:[AuthGuard]},
-      {path:"messages", component:MessagesComponent, canActivate:[AuthGuard]},
-      {path:"lists", component:ListsComponent, canActivate:[AuthGuard]}
+      {path:"members", component:MemberListComponent},
+      {path:"members/:username", component:MemberDetailComponent},
+      {path:"member/edit", component:MemberEditComponent, canDeactivate:[UnsaveChangeGuard]},
+      {path:"messages", component:MessagesComponent},
+      {path:"lists", component:ListsComponent}
     ]
   },
-  {path:"**", component:HomeComponent, pathMatch:'full'}
+  {path:"errors", component:TestErrorsComponent},
+  {path:"not-found", component:NotFoundComponent},
+  {path:"server-error", component:ServerErrorComponent},
+  {path:"member-card", component:MemberCardComponent},
+
+
+  {path:"**", component:NotFoundComponent, pathMatch:'full'},
+
 ];
 
 @NgModule({

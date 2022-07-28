@@ -1,8 +1,12 @@
 ﻿using API.Data;
+using API.DTOs;
 using API.Entities;
+using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,29 +14,39 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : BaseApiController
     {
-        private readonly DataContext _dataContext;
+        private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public UsersController(DataContext dataContext)
+        public UsersController(IUserRepository userRepository, IMapper mapper)
         {
-            _dataContext = dataContext;
+            _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         // GET: api/<UsersController>
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<AppUser>>> Get()
+        public async Task<ActionResult<IEnumerable<MemberDto>>> Get()
         {
-            return await _dataContext.Users.ToListAsync();
+
+            //var user = (await _userRepository.GetUsersAsync());
+            var userToReturn =  await _userRepository.GetMembersAsync();
+            return Ok(userToReturn);
         }
 
         // GET api/<UsersController>/5
-        [HttpGet("{id}")]
-        [Authorize]
-        public async Task<ActionResult<AppUser>> Get(int id)
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<AppUser>> Get(int id)
+        //{
+        //    return await _userRepository.GetUserById(id);
+        //}
+        [HttpGet("{username}")]
+        public async Task<ActionResult<MemberDto>> Get(string username)
         {
-            return await _dataContext.Users.FindAsync(id);
+            var result = await _userRepository.GetMemberByUsername(username);
+            return result;
         }
 
         // POST api/<UsersController>
@@ -42,9 +56,15 @@ namespace API.Controllers
         }
 
         // PUT api/<UsersController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public async Task<ActionResult> Put(UpdateMemberInfoDto member)
         {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userRepository.GetUserByUsername(username);
+            _mapper.Map(member, user);
+            _userRepository.Update(user);
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+            return BadRequest("Fail to update!");
         }
 
         // DELETE api/<UsersController>/5

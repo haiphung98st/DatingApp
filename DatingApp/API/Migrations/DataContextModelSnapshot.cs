@@ -30,6 +30,43 @@ namespace API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Interests")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Introduction")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("KnownAs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastActive")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LookingFor")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -45,6 +82,50 @@ namespace API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("API.Entities.Photo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsMainPhoto")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PublicId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.ToTable("Photos");
+                });
+
+            modelBuilder.Entity("API.Entities.Photo", b =>
+                {
+                    b.HasOne("API.Entities.AppUser", "AppUser")
+                        .WithMany("Photos")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
+            modelBuilder.Entity("API.Entities.AppUser", b =>
+                {
+                    b.Navigation("Photos");
                 });
 #pragma warning restore 612, 618
         }

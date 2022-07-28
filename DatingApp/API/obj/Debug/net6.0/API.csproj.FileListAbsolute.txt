@@ -61,3 +61,6 @@ G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\runtimes\win\lib\netstanda
 G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
 G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\Microsoft.IdentityModel.Abstractions.dll
 G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\Data\UserSeedData.json
+G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\AutoMapper.dll
+G:\Fsoft\NET\DatingApp\DatingApp\API\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
