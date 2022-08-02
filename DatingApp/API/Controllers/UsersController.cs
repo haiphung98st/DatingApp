@@ -1,6 +1,7 @@
 ﻿using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Extensions;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -19,11 +20,13 @@ namespace API.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IPhotoService _photoService;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper)
+        public UsersController(IUserRepository userRepository, IMapper mapper, IPhotoService photoService)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _photoService = photoService;
         }
 
         // GET: api/<UsersController>
@@ -42,7 +45,7 @@ namespace API.Controllers
         //{
         //    return await _userRepository.GetUserById(id);
         //}
-        [HttpGet("{username}")]
+        [HttpGet("{username}",Name ="GetUser")]
         public async Task<ActionResult<MemberDto>> Get(string username)
         {
             var result = await _userRepository.GetMemberByUsername(username);
@@ -59,7 +62,7 @@ namespace API.Controllers
         [HttpPut]
         public async Task<ActionResult> Put(UpdateMemberInfoDto member)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.GetUsername();
             var user = await _userRepository.GetUserByUsername(username);
             _mapper.Map(member, user);
             _userRepository.Update(user);
@@ -71,6 +74,22 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+        [HttpPost("add-photo")]
+        public async Task<ActionResult<PhotoDto>> UploadPhoto(IFormFile file)
+        {
+            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var result = await _photoService.AddPhotoAsync(file);
+            if (result.Error != null) return BadRequest(result.Error.Message);
+            var photo = new Photo
+            {
+                Url = result.SecureUrl.AbsoluteUri,
+                PublicId = result.PublicId
+            };
+            if (user.Photos.Count == 0) photo.IsMainPhoto = true;
+            user.Photos.Add(photo);
+            if (await _userRepository.SaveAllAsync()) return CreatedAtRoute("GetUser",new { username = user.UserName },_mapper.Map<PhotoDto>(photo));
+            return BadRequest("Somethings wrong when upload photo");
         }
     }
 }
