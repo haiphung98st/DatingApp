@@ -1,13 +1,10 @@
-﻿using API.Data;
-using API.DTOs;
+﻿using API.DTOs;
 using API.Entities;
 using API.Extensions;
 using API.Interfaces;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -35,7 +32,7 @@ namespace API.Controllers
         {
 
             //var user = (await _userRepository.GetUsersAsync());
-            var userToReturn =  await _userRepository.GetMembersAsync();
+            var userToReturn = await _userRepository.GetMembersAsync();
             return Ok(userToReturn);
         }
 
@@ -45,7 +42,7 @@ namespace API.Controllers
         //{
         //    return await _userRepository.GetUserById(id);
         //}
-        [HttpGet("{username}",Name ="GetUser")]
+        [HttpGet("{username}", Name = "GetUser")]
         public async Task<ActionResult<MemberDto>> Get(string username)
         {
             var result = await _userRepository.GetMemberByUsername(username);
@@ -88,8 +85,36 @@ namespace API.Controllers
             };
             if (user.Photos.Count == 0) photo.IsMainPhoto = true;
             user.Photos.Add(photo);
-            if (await _userRepository.SaveAllAsync()) return CreatedAtRoute("GetUser",new { username = user.UserName },_mapper.Map<PhotoDto>(photo));
+            if (await _userRepository.SaveAllAsync()) return CreatedAtRoute("GetUser", new { username = user.UserName }, _mapper.Map<PhotoDto>(photo));
             return BadRequest("Somethings wrong when upload photo");
+        }
+        [HttpPut("set-main-photo/{photoId}")]
+        public async Task<ActionResult> SetMainPhoto(int photoId)
+        {
+            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+            if (photo.IsMainPhoto) return BadRequest("This photo is already main");
+            var mainPhoto = user.Photos.FirstOrDefault(x => x.IsMainPhoto);
+            if (mainPhoto != null) mainPhoto.IsMainPhoto = false;
+            photo.IsMainPhoto = true;
+            if (await _userRepository.SaveAllAsync()) return NoContent();
+            return BadRequest("Cannot set main photo");
+        }
+        [HttpDelete("delete-photo/{photoId}")]
+        public async Task<ActionResult> DeletePhoto(int photoId)
+        {
+            var user = await _userRepository.GetUserByUsername(User.GetUsername());
+            var photo = user.Photos.FirstOrDefault(x => x.Id == photoId);
+            if (photo == null) return NotFound();
+            if (photo.IsMainPhoto) return BadRequest("You cannot delete the main photo");
+            if (photo.PublicId != null)
+            {
+                var result = await _photoService.DeletePhotoAsync(photo.PublicId);
+                if (result.Error != null) return BadRequest(result.Error);
+            }
+            user.Photos.Remove(photo);
+            if (await _userRepository.SaveAllAsync()) return Ok();
+            return BadRequest("Fail to delete photo");
         }
     }
 }

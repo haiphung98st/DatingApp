@@ -23,7 +23,8 @@
       </li>
     </ul>
     <div class="dropdown" dropdown *ngIf="(accountService.currentUser$|async) as user">
-      <a id="button-alignment" dropdownToggle class="dropdown-toggle text-light">
+      <img src="{{user.photoUrl}}" alt="{{user.username}}">
+      <a id="button-alignment" dropdownToggle class="dropdown-toggle text-light ml-3">
         Welcome {{user.username}}
       </a>
       <ul *dropdownMenu class="dropdown-menu" role="menu">

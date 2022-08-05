@@ -42,7 +42,7 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await _dataContext.Users.SingleOrDefaultAsync(x=>x.UserName.ToLower() == loginDto.Username.ToLower());
+            var user = await _dataContext.Users.Include(x => x.Photos).SingleOrDefaultAsync(x=>x.UserName.ToLower() == loginDto.Username.ToLower());
             if(user == null)
                 return Unauthorized($"User {loginDto.Username} is not exist");
             using var hmac = new HMACSHA512(user.PasswordSalt);
@@ -55,6 +55,7 @@ namespace API.Controllers
             {
                 Username = loginDto.Username,
                 Token = _tokenService.CreateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMainPhoto)?.Url,
             };
         }
         private async Task<bool> ExistUser(string username)
